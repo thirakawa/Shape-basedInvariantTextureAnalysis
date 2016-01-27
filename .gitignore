@@ -4,4 +4,4 @@ TreeOfShapes.c
 TreeOfShapes.so
 attributeGraph.pyc
 build/
-brodatz_sample/*
+brodatz_sample/*.npy

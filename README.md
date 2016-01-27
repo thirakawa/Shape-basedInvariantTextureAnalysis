@@ -29,6 +29,11 @@ This is used for compiling cython code (TreeOfShapes.pyx and PriorityQueue.pyx).
 This converts ToS class of TreeOfShapes.pyx into NetworkX graph object.
 
 
+## Sample images
+Some of the Brodatz dataset images are stored in *brodatz_sample* directory.  
+[Brodatz dataset](http://multibandtexture.recherche.usherbrooke.ca/original_brodatz.html)
+
+
 ## References
 1. X.-S. Xia, J. Delon, and Y. Gousseau, "Shape-based Invariant Texture Indexing," International Journal of Computer Vision (IJCV), vol.88, no.3, pp.382–403, 2010.
 2. T. Géraud, E. Carlinet, S. Crozet, and L. Najman, "A quasi-linear algorithm to compute the tree of shapes of nD images," International Symposium on Mathematical Morphology (ISMM), pp.98-110, 2013.
