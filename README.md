@@ -13,22 +13,6 @@ This repository implements a texture feature called *Shape-based Invariant Textu
     python SITA.py [image file]
 
 
-## Brief description for source files
-### SegmentedShapeFeatures.py
-This extracts SITA feature from an image and save as a binary file (.npy format).
-To execute this scripts, it is necessary to import following modules．
-
-### TreeOfShapes.pyx and PriorityQueue.pyx
-This builds ToS.
-The algorithm is based on [2].
-
-### setup.py
-This is used for compiling cython code (TreeOfShapes.pyx and PriorityQueue.pyx).
-
-### attributeGraph.py
-This converts ToS class of TreeOfShapes.pyx into NetworkX graph object.
-
-
 ## Sample images
 Some of the Brodatz dataset images are stored in *brodatz_sample* directory.  
 [Brodatz dataset](http://multibandtexture.recherche.usherbrooke.ca/original_brodatz.html)
