@@ -13,6 +13,10 @@ This repository implements a texture feature called *Shape-based Invariant Textu
     python setup.py build_ext --inplace
     python SITA.py [image file]
 
+### Classification
+    cd 10foldcv-svm
+    python 10foldcv_SVM_multithread.py [kernel]
+
 
 ## Sample images
 Some of the Brodatz dataset images are stored in *brodatz_sample* directory.  

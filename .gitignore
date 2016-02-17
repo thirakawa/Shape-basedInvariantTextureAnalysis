@@ -1,7 +1,7 @@
-PriorityQueue.c
-PriorityQueue.so
-TreeOfShapes.c
-TreeOfShapes.so
-attributeGraph.pyc
+*.c
+*.so
+*.pyc
 build/
 brodatz_sample/*.npy
+
+10foldcv-svm/feature

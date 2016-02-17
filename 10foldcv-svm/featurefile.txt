@@ -1,0 +1,10 @@
+../brodatz_sample/D1-1-SITA.npy
+../brodatz_sample/D2-1-SITA.npy
+../brodatz_sample/D3-1-SITA.npy
+../brodatz_sample/D4-1-SITA.npy
+../brodatz_sample/D5-1-SITA.npy
+../brodatz_sample/D6-1-SITA.npy
+../brodatz_sample/D7-1-SITA.npy
+../brodatz_sample/D8-1-SITA.npy
+../brodatz_sample/D9-1-SITA.npy
+../brodatz_sample/D10-1-SITA.npy
