@@ -9,6 +9,7 @@ This repository implements a texture feature called *Shape-based Invariant Textu
 
 
 ## Usage
+### Extracting SITA feature
     python setup.py build_ext --inplace
     python SITA.py [image file]
 

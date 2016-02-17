@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import sys, os
+import os
 import math
 import numpy as np
 import cv2
-import matplotlib
-# matplotlib.use('Agg')
-# import matplotlib.pyplot as plt
-# plt.ioff()
 
 import TreeOfShapes as tos
 from attributeGraph import *
@@ -35,7 +31,7 @@ def traceChildrenNodes(g, n):
         return None
     else:
         ch = g.node[n]['children']
-        for i in g.node[n]['children']
+        for i in g.node[n]['children']:
             if traceChildrenNodes(g, i) != None:
                 ch = ch + self.traceChildrenNodes(g, i)
         return ch
@@ -52,7 +48,9 @@ def traceMParentNodes(g, n, M = 3):
     return parents
 
 
-def computeSITAFromTree(g, npmap, img, imgsize):
+def computeSitaElementsFromTree(g, npmap, img):
+    imgsize = img.shape
+
     darkElongation = []
     brightElongation = []
     darkCompactness = []
@@ -67,8 +65,6 @@ def computeSITAFromTree(g, npmap, img, imgsize):
     for i in g.graph['orderNodes']:
 
         if g.node[i]['parent'] == -1:
-            # pix = traceChildrenNodesPix(g, i)
-            # g.node[i]['area'] = float(len(pix))
             continue
 
         if g.node[i]['grayLevel'] <= g.node[g.node[i]['parent'][0]]['grayLevel']:
@@ -83,7 +79,6 @@ def computeSITAFromTree(g, npmap, img, imgsize):
             tmp[p[1], p[0]] = 255
         M = cv2.moments(tmp, binaryImage=1)
 
-        # g.node[i]['area'] = M['m00']
         C = np.array( [ [M['nu20'], M['nu11']], [M['nu11'], M['nu02']] ] )
         eig, v = np.linalg.eig(C)
 
@@ -134,20 +129,49 @@ def computeSITAFromTree(g, npmap, img, imgsize):
     # ============================================================
 
     # constructing histograms
-    dark_EH    = np.histogram(darkElongation,    bins=25, range=(0,1), normed=True)[0]
-    bright_EH  = np.histogram(brightElongation,  bins=25, range=(0,1), normed=True)[0]
-    dark_CpH   = np.histogram(darkCompactness,   bins=25, range=(0,1), normed=True)[0]
-    bright_CpH = np.histogram(brightCompactness, bins=25, range=(0,1), normed=True)[0]
-    dark_SRH   = np.histogram(darkScaleRatio,    bins=25, range=(0,1), normed=True)[0]
-    bright_SRH = np.histogram(brightScaleRatio,  bins=25, range=(0,1), normed=True)[0]
+    dark_EH    = np.histogram(darkElongation,    bins=25, range=(0,1), normed=False)[0]
+    bright_EH  = np.histogram(brightElongation,  bins=25, range=(0,1), normed=False)[0]
+    dark_CpH   = np.histogram(darkCompactness,   bins=25, range=(0,1), normed=False)[0]
+    bright_CpH = np.histogram(brightCompactness, bins=25, range=(0,1), normed=False)[0]
+    dark_SRH   = np.histogram(darkScaleRatio,    bins=25, range=(0,1), normed=False)[0]
+    bright_SRH = np.histogram(brightScaleRatio,  bins=25, range=(0,1), normed=False)[0]
+
+    # normalize
+    if np.sum(dark_EH) == 0:
+        dark_EH = np.zeros(25, dtype='float')
+    else:
+        dark_EH = dark_EH / np.linalg.norm(dark_EH.astype('float'), ord=1)
+
+    if np.sum(bright_EH) == 0:
+        bright_EH = np.zeros(25, dtype='float')
+    else:
+        bright_EH = bright_EH / np.linalg.norm(bright_EH.astype('float'), ord=1)
+
+    if np.sum(dark_CpH) == 0:
+        dark_CpH = np.zeros(25, dtype='float')
+    else:
+        dark_CpH = dark_CpH / np.linalg.norm(dark_CpH.astype('float'), ord=1)
+
+    if np.sum(bright_CpH) == 0:
+        bright_CpH = np.zeros(25, dtype='float')
+    else:
+        bright_CpH = bright_CpH / np.linalg.norm(bright_CpH.astype('float'), ord=1)
+
+    if np.sum(dark_SRH) == 0:
+        dark_SRH = np.zeros(25, dtype='float')
+    else:
+        dark_SRH = dark_SRH / np.linalg.norm(dark_SRH.astype('float'), ord=1)
+
+    if np.sum(bright_SRH) == 0:
+        bright_SRH = np.zeros(25, dtype='float')
+    else:
+        bright_SRH = bright_SRH / np.linalg.norm(bright_SRH.astype('float'), ord=1)
 
     EH  = np.r_[dark_EH,  bright_EH]
     CpH = np.r_[dark_CpH, bright_CpH]
     SRH = np.r_[dark_SRH, bright_SRH]
-    CtH = np.histogram(normvalue.flatten(), bins=50,
-                   range=(NL_min, NL_max), normed=True)[0]
 
-    return EH, CpH, SRH, CtH
+    return EH, CpH, SRH, normvalue.flatten()
 
 
 def SITA(filename, filterSize=10, fcomb='SI', isCtH=True):
@@ -169,7 +193,7 @@ def SITA(filename, filterSize=10, fcomb='SI', isCtH=True):
     g, nodePixMap = createAttributeGraph(tree, padding)
 
     # compute each attribute histogram
-    EH, CpH, SRH, CtH = computeSITAFromTree(g, nodePixMap, AF_img, AF_img.shape)
+    EH, CpH, SRH, NL = computeSitaElementsFromTree(g, nodePixMap, AF_img)
 
     # selecting output feature
     if fcomb == 'AI':
@@ -181,25 +205,78 @@ def SITA(filename, filterSize=10, fcomb='SI', isCtH=True):
         feature = np.r_[EH, CpH, SRH]
 
     if isCtH:
+        CtH = np.histogram(NL, bins=50, range=(NL_min, NL_max), normed=False)[0]
+        CtH = CtH / float( np.linalg.norm(CtH, ord=1) )
         feature = np.r_[feature, CtH]
 
     # output
-    basename, ext = os.path.splitext(filename)
-    np.save(basename+".npy", feature)
+    basename, ext = os.path.splitext( filename )
+    np.save( basename + "-SITA.npy", feature )
+
+
+def SitaElements(filename, filterSize=10, fcomb='SI'):
+    """
+    This function outputs two numpy array objects:
+    1. SI or AI
+    2. Normalized gray level values (without generating CtH)
+
+    fcomb: 'SI' or 'AI'
+    SI = EH + CpH + SRH
+    AI = EH + CpH
+    """
+    src = cv2.imread(filename, 0).astype(np.uint32)
+
+    # constructing tree of shapes
+    AF_img = tos.areaFilter(src, size=filterSize)
+    padding = tos.imagePadding(AF_img, 0)
+    tree = tos.constructTreeOfShapes(padding, None)
+    tos.addAttributeArea(tree)
+    g, nodePixMap = createAttributeGraph(tree, padding)
+
+    # compute each attribute histogram
+    EH, CpH, SRH, NL = computeSitaElementsFromTree(g, nodePixMap, AF_img)
+
+    # selecting output feature
+    if fcomb == 'AI':
+        feature = np.r_[EH, CpH]
+    elif fcomb == 'SI':
+        feature = np.r_[EH, CpH, SRH]
+    else:
+        print "Wrong string is specified. 'SI' was selected."
+        feature = np.r_[EH, CpH, SRH]
+
+    # output
+    basename, ext = os.path.splitext( filename )
+    if fcomb == 'AI':
+        np.save( basename + "-AI.npy", feature )
+    elif fcomb == 'SI':
+        np.save( basename + "-SI.npy", feature )
+    else:
+        print "Wrong string is specified. 'SI' was selected."
+        np.save( basename + "-SI.npy", feature )
+    np.save( basename + "-NL.npy", NL )
 
 
 
 if __name__ == '__main__':
+
+    import sys
     if len(sys.argv) < 2:
         img_name = "brodatz_sample/D1-1.bmp"
     else:
         img_name = sys.argv[1]
 
     import time
+    # function: SITA
     s = time.time()
     SITA(img_name, filterSize=10, fcomb='SI', isCtH=True)
     e = time.time()
-    print e - s
+    print "computational time of SITA:", (e - s)
 
+    # function: SitaElements
+    s = time.time()
+    SitaElements(img_name, filterSize=10, fcomb='SI')
+    e = time.time()
+    print "computational time of SitaElements:", (e - s)
 
 
