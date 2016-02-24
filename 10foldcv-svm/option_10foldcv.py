@@ -6,7 +6,8 @@ import csv
 
 
 allSamples = "featurefile.txt"
-allLabels  = "labels.txt"
+# allLabels  = "labels.txt"
+allLabels  = "labels-bin.txt"
 
 
 def readLabels():

@@ -5,3 +5,5 @@ build/
 brodatz_sample/*.npy
 
 10foldcv-svm/feature
+10foldcv-svm/model
+
