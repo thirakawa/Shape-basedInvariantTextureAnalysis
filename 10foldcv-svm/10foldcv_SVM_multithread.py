@@ -1,15 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import sys, os
+import sys
+import os
+import time
+import threading
 import numpy as np
 import matplotlib.pyplot as plt
-import threading
 
 from sklearn import svm
 from sklearn.cross_validation import KFold
+
+# Kernels for SVM
 from sklearn.metrics.pairwise import chi2_kernel, additive_chi2_kernel
+from pykernels.regular import Min # Histogram intersection
 
 import option_10foldcv as op
+
+
 
 
 def one_trial_SVM(counter, Features, Labels, train, test, C, Scores, Kernel):
@@ -24,6 +31,8 @@ def one_trial_SVM(counter, Features, Labels, train, test, C, Scores, Kernel):
         clf = svm.SVC(kernel=chi2_kernel, C=C, probability=False).fit(F_train, L_train)
     elif Kernel == 'chi2ng':
         clf = svm.SVC(kernel=additive_chi2_kernel, C=C, probability=False).fit(F_train, L_train)
+    elif Kernel == 'hi':
+        clf = svm.SVC(kernel=Min(), C=C, probability=False).fit(F_train, L_train)
     else:
         clf = svm.SVC(kernel='linear', C=C, probability=False).fit(F_train, L_train)
 
@@ -50,7 +59,6 @@ def nfoldCV_SVM(Features, Labels, KF, C, i, Scores, kernel):
 
 # main ==================================================================
 if __name__ == '__main__':
-    import time
 
     pid = os.getpid()
     print "pid:", pid
@@ -70,11 +78,13 @@ if __name__ == '__main__':
     nSamples = Features.shape[0]
     op.colPrint("Reading features & labels; done. Number of samples: %s" % nSamples, col='y')
 
+
     # split samples (N = 10) ============================================
     kf = KFold(nSamples, n_folds=10, shuffle=True, random_state=None)
 
     # Parameter of SVM ===========================
     C = np.logspace(-5, 5, num=11)
+    # C = np.logspace(-5, 4, num=10)
     Scores = np.zeros([len(C), 10])
 
     start = time.time()
@@ -91,6 +101,7 @@ if __name__ == '__main__':
     plt.plot(C, mean_accuracy)
     plt.xscale("log")
     plt.savefig("result_%s.pdf" % pid)
+    # plt.show()
 
     op.colPrint("End of 10-fold CV.", col='y')
 

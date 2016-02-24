@@ -14,6 +14,8 @@ from attributeGraph import *
 # You should change these values depending on texture images.
 NL_max = 10.0
 NL_min = 0.0
+# NL_max = 4.79583152331
+# NL_min = -12.6491106407
 
 
 def traceChildrenNodesPix(g, n):
