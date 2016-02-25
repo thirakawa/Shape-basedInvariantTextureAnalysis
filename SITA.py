@@ -12,10 +12,10 @@ from attributeGraph import *
 # minimum and maximum value of histogram range of
 # normalized gray level (CtH)
 # You should change these values depending on texture images.
-NL_max = 10.0
-NL_min = 0.0
-# NL_max = 4.79583152331
-# NL_min = -12.6491106407
+# NL_max = 10.0
+# NL_min = -10.0
+NL_max = 4.79583152331
+NL_min = -12.6491106407
 
 
 def traceChildrenNodesPix(g, n):
@@ -50,7 +50,19 @@ def traceMParentNodes(g, n, M = 3):
     return parents
 
 
-def computeSitaElementsFromTree(g, npmap, img):
+def removeEmptyRootNode(g, nodePixMap):
+    for i in g.graph['orderNodes']:
+        if len(g.node[i]['pixels']) == 0:
+            if np.sum(nodePixMap[nodePixMap==i]) == 0:
+                if i == g.graph['orderNodes'][0]:
+                    ch = g.node[i]['children']
+                    g.remove_node(i)
+                    g.graph['orderNodes'].remove(i)
+                    g.node[ch[0]]['parent'] = -1
+                    break
+
+
+def computeSitaElementsFromTree(g, nodePixMap, img):
     imgsize = img.shape
 
     darkElongation = []
@@ -66,13 +78,14 @@ def computeSitaElementsFromTree(g, npmap, img):
     # ============================================================
     for i in g.graph['orderNodes']:
 
+        # dark or bright blob ?
         if g.node[i]['parent'] == -1:
-            continue
-
-        if g.node[i]['grayLevel'] <= g.node[g.node[i]['parent'][0]]['grayLevel']:
             isDark = True
         else:
-            isDark = False
+            if g.node[i]['grayLevel'] <= g.node[g.node[i]['parent'][0]]['grayLevel']:
+                isDark = True
+            else:
+                isDark = False
 
         # moment ===============================================
         pix = traceChildrenNodesPix(g, i)
@@ -94,28 +107,31 @@ def computeSitaElementsFromTree(g, npmap, img):
         if compact > 1:
             compact = 1.0
 
-        # scale ratio =========================================
-        parents = traceMParentNodes(g, i)
-        if parents == None:
-            continue
-        ancestor_area = 0.0
-        for parentIndex in parents:
-            ancestor_area = ancestor_area + g.node[parentIndex]['area']
-        alpha = g.node[i]['area'] / (ancestor_area / 3.0)
-
-        # adding attribute to dark or bright ===================
+        # appendiing attributes for lists
         if isDark:
             darkElongation.append(elongation)
             darkCompactness.append(compact)
-            darkScaleRatio.append(alpha)
         else:
             brightElongation.append(elongation)
             brightCompactness.append(compact)
-            brightScaleRatio.append(alpha)
+
+        # scale ratio =========================================
+        parents = traceMParentNodes(g, i)
+        if parents != None:
+            ancestor_area = 0.0
+            for parentIndex in parents:
+                ancestor_area = ancestor_area + g.node[parentIndex]['area']
+            alpha = g.node[i]['area'] / (ancestor_area / 3.0)
+
+            # appending attribute for list
+            if isDark:
+                darkScaleRatio.append(alpha)
+            else:
+                brightScaleRatio.append(alpha)
 
         # normalized gray level ================================
-        if np.sum(npmap == i) != 0:
-            num_pix = np.sum(npmap == i)
+        if np.sum(nodePixMap == i) != 0:
+            num_pix = np.sum(nodePixMap == i)
             grayvalues = []
             for p in pix:
                 grayvalues.append(img[p[1], p[0]])
@@ -123,9 +139,9 @@ def computeSitaElementsFromTree(g, npmap, img):
             g_x = np.array(grayvalues, dtype='float')
             sd = math.sqrt( sum((g_x - meanval) * (g_x - meanval)) / float(len(pix)) )
             if sd == 0.0:
-                normvalue[npmap == i] = 0.0
+                normvalue[nodePixMap == i] = 0.0
             else:
-                normvalue[npmap == i] = (img[npmap == i] - meanval) / sd
+                normvalue[nodePixMap == i] = (img[nodePixMap == i] - meanval) / sd
     # ============================================================
     # end of loop for each node
     # ============================================================
@@ -194,6 +210,9 @@ def SITA(filename, filterSize=10, fcomb='SI', isCtH=True):
     tos.addAttributeArea(tree)
     g, nodePixMap = createAttributeGraph(tree, padding)
 
+    # remove paddint (root) node
+    removeEmptyRootNode(g, nodePixMap)
+
     # compute each attribute histogram
     EH, CpH, SRH, NL = computeSitaElementsFromTree(g, nodePixMap, AF_img)
 
@@ -208,7 +227,10 @@ def SITA(filename, filterSize=10, fcomb='SI', isCtH=True):
 
     if isCtH:
         CtH = np.histogram(NL, bins=50, range=(NL_min, NL_max), normed=False)[0]
-        CtH = CtH / float( np.linalg.norm(CtH, ord=1) )
+        if np.sum(CtH) == 0:
+            CtH = np.zeros(50, dtype='float')
+        else:
+            CtH = CtH / float( np.linalg.norm(CtH, ord=1) )
         feature = np.r_[feature, CtH]
 
     # output
@@ -234,6 +256,9 @@ def SitaElements(filename, filterSize=10, fcomb='SI'):
     tree = tos.constructTreeOfShapes(padding, None)
     tos.addAttributeArea(tree)
     g, nodePixMap = createAttributeGraph(tree, padding)
+
+    # remove padding (root) node
+    removeEmptyRootNode(g, nodePixMap)
 
     # compute each attribute histogram
     EH, CpH, SRH, NL = computeSitaElementsFromTree(g, nodePixMap, AF_img)
@@ -261,14 +286,14 @@ def SitaElements(filename, filterSize=10, fcomb='SI'):
 
 
 if __name__ == '__main__':
-
     import sys
+    import time
+
     if len(sys.argv) < 2:
         img_name = "brodatz_sample/D1-1.bmp"
     else:
         img_name = sys.argv[1]
 
-    import time
     # function: SITA
     s = time.time()
     SITA(img_name, filterSize=10, fcomb='SI', isCtH=True)
