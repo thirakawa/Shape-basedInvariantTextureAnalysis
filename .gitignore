@@ -2,8 +2,9 @@ files.txt
 *.c
 *.so
 *.pyc
+/*.bmp
+*.zip
 build/
-
 sita908_elements/
 sita908_elements.tar.gz
 
@@ -14,3 +15,6 @@ brodatz_sample/*.npy
 # in 10foldcv-svm directory
 10foldcv-svm/feature
 10foldcv-svm/model
+
+10foldcv-svm/sita908/
+10foldcv-svm/clf_results/

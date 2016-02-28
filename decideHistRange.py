@@ -37,16 +37,36 @@ def concatenateHist(SI_file, CtH_file, output_path):
 
 
 
-if __name__ == '__main__':
-
-    f = open("nl_file.txt")
+def readTextFile(filename):
+    f = open(filename)
     lines = f.readlines()
     f.close()
+    return lines
 
-    maximum, minimum = decideRange_CtH(lines)
 
-    print "max:", maximum
-    print "min:", minimum
+if __name__ == '__main__':
 
-    for l in lines:
-        contrastHistogram(l.strip(), maximum, minimum)
+    # f = open("nl_file.txt")
+    # lines = f.readlines()
+    # f.close()
+
+    # maximum, minimum = decideRange_CtH(lines)
+
+    # print "max:", maximum
+    # print "min:", minimum
+
+    # for l in lines:
+    #     contrastHistogram(l.strip(), maximum, minimum)
+
+    si  = readTextFile("si_file.txt")
+    cth = readTextFile("CtH_file.txt")
+    out = readTextFile("sita_file.txt")
+
+    for s, c, o in zip(si, cth, out):
+        concatenateHist( s.strip(), c.strip(), o.strip() )
+
+
+
+
+
+

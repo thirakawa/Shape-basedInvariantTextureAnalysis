@@ -284,6 +284,52 @@ def SitaElements(filename, filterSize=10, fcomb='SI'):
     np.save( basename + "-NL.npy", NL )
 
 
+def SITA_fromArray(inputArr, filterSize=10, fcomb='SI', isCtH=True):
+    """
+    fcomb: 'SI' or 'AI'
+    SI = EH + CpH + SRH
+    AI = EH + CpH
+
+    isCtH: boolian
+    If isCtH is True, CtH is concatenated to SI or AI.
+    """
+    src = inputArr.astype(np.uint32)
+
+    # constructing tree of shapes
+    AF_img = tos.areaFilter(src, size=filterSize)
+    padding = tos.imagePadding(AF_img, 0)
+    tree = tos.constructTreeOfShapes(padding, None)
+    tos.addAttributeArea(tree)
+    g, nodePixMap = createAttributeGraph(tree, padding)
+
+    # remove paddint (root) node
+    removeEmptyRootNode(g, nodePixMap)
+
+    # compute each attribute histogram
+    EH, CpH, SRH, NL = computeSitaElementsFromTree(g, nodePixMap, AF_img)
+
+    # selecting output feature
+    if fcomb == 'AI':
+        feature = np.r_[EH, CpH]
+    elif fcomb == 'SI':
+        feature = np.r_[EH, CpH, SRH]
+    else:
+        print "Wrong string is specified. 'SI' was selected."
+        feature = np.r_[EH, CpH, SRH]
+
+    if isCtH:
+        CtH = np.histogram(NL, bins=50, range=(NL_min, NL_max), normed=False)[0]
+        if np.sum(CtH) == 0:
+            CtH = np.zeros(50, dtype='float')
+        else:
+            CtH = CtH / float( np.linalg.norm(CtH, ord=1) )
+        feature = np.r_[feature, CtH]
+
+    return feature
+
+
+
+
 
 if __name__ == '__main__':
     import sys
