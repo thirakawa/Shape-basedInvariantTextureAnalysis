@@ -5,6 +5,7 @@ import SITA as sita
 if __name__ == '__main__':
     import time
     import itertools
+    import multiprocessing
     from multiprocessing import Process
 
     def applyAll(filenames):
@@ -18,7 +19,11 @@ if __name__ == '__main__':
     lines = f.readlines()
     f.close()
 
-    N_seg = 30
+    print "number of cpu:", multiprocessing.cpu_count()
+    if multiprocessing.cpu_count() >= len(lines):
+        N_seg = len(lines)
+    else:
+        N_seg = multiprocessing.cpu_count() - 1
 
     s = time.time()
     threads = []
