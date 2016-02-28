@@ -1,9 +1,16 @@
+files.txt
 *.c
 *.so
 *.pyc
 build/
+
+sita908_elements/
+sita908_elements.tar.gz
+
+NBIimages-CVdataset908
+
 brodatz_sample/*.npy
 
+# in 10foldcv-svm directory
 10foldcv-svm/feature
 10foldcv-svm/model
-
