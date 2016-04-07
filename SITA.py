@@ -14,8 +14,23 @@ from attributeGraph import *
 # You should change these values depending on texture images.
 # NL_max = 10.0
 # NL_min = -10.0
-NL_max = 4.79583152331
-NL_min = -12.6491106407
+
+# NL_max = 4.79583152331
+# NL_min = -12.6491106407
+
+NL_max = 9.98163707411
+NL_min = -25.5404893122
+
+
+def printNLrange():
+    print "SITA: NL_max:", NL_max, "NL_min:", NL_min
+
+    
+def setNLrange(maxVal, minVal):
+	global NL_max
+	global NL_min
+	NL_max = float(maxVal)
+	NL_min = float(minVal)
 
 
 def traceChildrenNodesPix(g, n):
@@ -326,8 +341,6 @@ def SITA_fromArray(inputArr, filterSize=10, fcomb='SI', isCtH=True):
         feature = np.r_[feature, CtH]
 
     return feature
-
-
 
 
 
