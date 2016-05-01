@@ -21,7 +21,7 @@ if __name__ == '__main__':
     op.colPrint("Reading features & labels; done. Number of samples: %s" % nSamples, col='y')
 
     # create svm instance and training
-    clf = svm.SVC(kernel='linear', C=10^2, probability=True).fit(Features, Labels)
+    clf = svm.SVC(kernel='linear', C=10**1, probability=True).fit(Features, Labels)
 
     # export classifier
     print "Save classifier as", modelName
