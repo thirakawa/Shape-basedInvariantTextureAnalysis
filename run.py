@@ -15,7 +15,12 @@ if __name__ == '__main__':
             print f.strip()
             sita.SitaElements(f.strip(), filterSize=10, fcomb='SI')
 
-    f = open('files.txt')
+    argvs = sys.argv
+    if len(argvs) < 2:
+        print "usage: python ./run.py [file]"
+        sys.exit(-1)
+
+    f = open(argvs[1])
     lines = f.readlines()
     f.close()
 
